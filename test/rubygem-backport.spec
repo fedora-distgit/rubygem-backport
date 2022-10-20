@@ -11,7 +11,10 @@ Source0: https://rubygems.org/gems/%{gem_name}-%{version}.gem
 BuildRequires: ruby(release)
 BuildRequires: rubygems-devel
 BuildRequires: ruby >= 2.1
-BuildRequires: rubygem(rspec) >= 3.0
+# BuildRequires: rubygem(rspec) >= 3.0
+# BuildRequires: rubygem(rspec) < 4
+# BuildRequires: rubygem(simplecov) >= 0.14
+# BuildRequires: rubygem(simplecov) < 1
 BuildArch: noarch
 
 %description
@@ -30,7 +33,11 @@ Documentation for %{name}.
 %setup -q -n %{gem_name}-%{version}
 
 %build
+# Create the gem as gem install only works on a gem file
 gem build ../%{gem_name}-%{version}.gemspec
+
+# %%gem_install compiles any C extensions and installs the gem into ./%%gem_dir
+# by default, so that we can move it into the buildroot in %%install
 %gem_install
 
 %install
@@ -38,15 +45,18 @@ mkdir -p %{buildroot}%{gem_dir}
 cp -a .%{gem_dir}/* \
         %{buildroot}%{gem_dir}/
 
+
+
 %check
 pushd .%{gem_instdir}
-# Tests are not shipped with the gem
-# rspec -Itest spec
+# rspec spec
 popd
 
 %files
 %dir %{gem_instdir}
-%exclude %{gem_instdir}/.*
+%exclude %{gem_instdir}/.gitignore
+%exclude %{gem_instdir}/.rubocop.yml
+%exclude %{gem_instdir}/.travis.yml
 %license %{gem_instdir}/LICENSE.txt
 %{gem_instdir}/bin
 %{gem_libdir}
@@ -55,6 +65,7 @@ popd
 
 %files doc
 %doc %{gem_docdir}
+%exclude %{gem_instdir}/.rspec
 %doc %{gem_instdir}/CHANGELOG.md
 %{gem_instdir}/Gemfile
 %doc %{gem_instdir}/README.md
